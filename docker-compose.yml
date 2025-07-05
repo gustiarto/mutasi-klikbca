@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  mutasi-klikbca:
+    build: .
+    container_name: mutasi-klikbca
+    ports:
+      - "3040:3040"
+    environment:
+      - AUTH_TOKEN=klikbca-secret-token
+    restart: unless-stopped
