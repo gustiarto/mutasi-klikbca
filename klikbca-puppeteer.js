@@ -1,5 +1,9 @@
 const puppeteer = require('puppeteer');
 
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // Ambil data mutasi rekening dan parsing ke JSON
 async function getMutasiPuppeteer(user_id, pin, logger = console) {
   logger.info?.('START: Launching browser');
@@ -41,13 +45,13 @@ async function getMutasiPuppeteer(user_id, pin, logger = console) {
   }
   await menuFrame.waitForSelector('a[href="account_information_menu.htm"]', { timeout: 10000 });
   await menuFrame.click('a[href="account_information_menu.htm"]');
-  await page.waitForTimeout(1000);
+  await delay(1000);
   await menuFrame.waitForSelector('a[onclick*="accountstmt.do?value(actions)=acct_stmt"]', { timeout: 10000 });
   await menuFrame.evaluate(() => {
     const mutasi = Array.from(document.querySelectorAll('a')).find(a => a.textContent.includes('Mutasi Rekening'));
     if (mutasi) mutasi.click();
   });
-  await page.waitForTimeout(1000);
+  await delay(1000);
 
   logger.info?.('STEP: Klik tombol Lihat Mutasi Rekening di frame atm');
   const atmFrame = frames.find(f => f.name() === 'atm');
@@ -59,7 +63,7 @@ async function getMutasiPuppeteer(user_id, pin, logger = console) {
   }
   await atmFrame.waitForSelector('input[name="value(submit1)"]', { timeout: 10000 });
   await atmFrame.click('input[name="value(submit1)"]');
-  await page.waitForTimeout(2000);
+  await delay(2000);
 
   logger.info?.('STEP: Tunggu tabel mutasi muncul');
   await atmFrame.waitForSelector('table[border="1"]', { timeout: 10000 });
@@ -109,7 +113,7 @@ async function getMutasiPuppeteer(user_id, pin, logger = console) {
     try {
       await headerFrame.waitForSelector('a[onclick*="logout"]', { timeout: 10000 });
       await headerFrame.click('a[onclick*="logout"]');
-      await page.waitForTimeout(2000);
+      await delay(2000);
     } catch (e) {
       logger.warn?.('WARN: Logout gagal');
     }
