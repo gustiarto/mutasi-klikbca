@@ -1,5 +1,7 @@
 # mutasi-klikbca
 
+A secure, automated service to fetch and monitor KlikBCA Individual account mutations using Puppeteer, with webhook notification and local JSON database. Suitable for payment automation and reconciliation.
+
 ## Project Purpose
 This project automates the retrieval of account mutation (transaction history) from KlikBCA Individual using Puppeteer and exposes it as a secure HTTP API. It also supports scheduled (cron) fetching, deduplication, and webhook notification for new transactions, with all data stored in a local JSON file database.
 
@@ -15,7 +17,7 @@ This project automates the retrieval of account mutation (transaction history) f
 - Handles login errors (wrong credentials, session lock, etc.)
 - Parses transaction table robustly to JSON
 - Provides a secure HTTP POST endpoint to fetch mutation data
-- Supports Bearer Token authentication for API security
+- Supports HMAC SHA256 authentication for API security
 - Ready for Docker deployment
 - Cron job for scheduled data fetching
 - Webhook notification for new transactions
@@ -55,6 +57,13 @@ The API will listen on port 3040 by default.
 ```sh
 docker build -t mutasi-klikbca .
 docker run -p 3040:3040 --env-file .env mutasi-klikbca
+```
+
+## Puppeteer Launch (Headless Mode)
+This project uses Puppeteer with the modern headless mode to avoid deprecation warnings. If you modify the code, always launch Puppeteer like this:
+
+```js
+const browser = await puppeteer.launch({ headless: "new", args: ["--no-sandbox", "--disable-setuid-sandbox"] });
 ```
 
 ## API Authentication (HMAC SHA256)
