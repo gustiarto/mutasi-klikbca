@@ -39,8 +39,15 @@ async function getMutasiPuppeteer(user_id, pin, logger = console) {
   const menuFrame = frames.find(f => f.name() === 'menu');
   if (!menuFrame) {
     logger.error?.('ERROR: Frame menu tidak ditemukan');
-    await headerFrame.waitForSelector('a[onclick*="logout"]', { timeout: 10000 });
-    await headerFrame.click('a[onclick*="logout"]');
+    const headerFrame = frames.find(f => f.name() === 'header');
+    if (headerFrame) {
+      try {
+        await headerFrame.waitForSelector('a[onclick*="logout"]', { timeout: 10000 });
+        await headerFrame.click('a[onclick*="logout"]');
+      } catch (e) {
+        logger.warn?.('WARN: Logout gagal');
+      }
+    }
     throw new Error('Frame menu tidak ditemukan');
   }
   await menuFrame.waitForSelector('a[href="account_information_menu.htm"]', { timeout: 10000 });
@@ -57,8 +64,15 @@ async function getMutasiPuppeteer(user_id, pin, logger = console) {
   const atmFrame = frames.find(f => f.name() === 'atm');
   if (!atmFrame) {
     logger.error?.('ERROR: Frame atm tidak ditemukan');
-    await headerFrame.waitForSelector('a[onclick*="logout"]', { timeout: 10000 });
-    await headerFrame.click('a[onclick*="logout"]');
+    const headerFrame = frames.find(f => f.name() === 'header');
+    if (headerFrame) {
+      try {
+        await headerFrame.waitForSelector('a[onclick*="logout"]', { timeout: 10000 });
+        await headerFrame.click('a[onclick*="logout"]');
+      } catch (e) {
+        logger.warn?.('WARN: Logout gagal');
+      }
+    }
     throw new Error('Frame atm tidak ditemukan');
   }
   await atmFrame.waitForSelector('input[name="value(submit1)"]', { timeout: 10000 });
