@@ -3,16 +3,22 @@ const { getMutasiPuppeteer } = require('./klikbca-puppeteer');
 const { loadDb, saveDb, findMutasiInDb } = require('./mutasi-db');
 const axios = require('axios');
 const cron = require('node-cron');
+const crypto = require('crypto');
 
 const app = express();
 app.use(express.json());
 
-// Middleware autentikasi sederhana (Bearer Token)
-const AUTH_TOKEN = process.env.AUTH_TOKEN || 'klikbca-secret-token';
+// Middleware HMAC SHA256 Auth untuk semua endpoint
+const API_SECRET = process.env.AUTH_TOKEN || 'klikbca-secret-token';
 app.use((req, res, next) => {
-  const auth = req.headers['authorization'];
-  if (!auth || !auth.startsWith('Bearer ') || auth.split(' ')[1] !== AUTH_TOKEN) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  const receivedHmac = req.headers['x-api-key'];
+  let payload = '';
+  if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') {
+    payload = JSON.stringify(req.body || {});
+  }
+  const expectedHmac = crypto.createHmac('sha256', API_SECRET).update(payload).digest('hex');
+  if (!receivedHmac || receivedHmac !== expectedHmac) {
+    return res.status(401).json({ error: 'Unauthorized (HMAC)' });
   }
   next();
 });
@@ -38,13 +44,12 @@ cron.schedule(CRON_INTERVAL, async () => {
         const fetch_datetime = new Date().toISOString();
         // Kirim webhook
         try {
-          const axiosConfig = { timeout: 10000 };
-          if (WEBHOOK_BASIC_USER && WEBHOOK_BASIC_PASS) {
-            axiosConfig.auth = {
-              username: WEBHOOK_BASIC_USER,
-              password: WEBHOOK_BASIC_PASS
-            };
-          }
+          const payload = JSON.stringify(mutasi);
+          const hmac = crypto.createHmac('sha256', API_SECRET).update(payload).digest('hex');
+          const axiosConfig = {
+            timeout: 10000,
+            headers: { 'x-api-key': hmac }
+          };
           const resp = await axios.post(WEBHOOK_URL, mutasi, axiosConfig);
           const { entryid, uniqueid } = resp.data || {};
           db.push({ ...mutasi, fetch_datetime, status_webhook: { entryid, uniqueid } });

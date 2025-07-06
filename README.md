@@ -7,8 +7,8 @@ This project automates the retrieval of account mutation (transaction history) f
 - The service logs in to KlikBCA Individual using Puppeteer, navigates to the mutation page, and parses the transaction table into JSON.
 - Every 10 minutes (or as configured), a cron job fetches the latest mutation data.
 - New transactions (not previously seen) are appended to a local JSON database (`mutasi-db.json`) with a fetch timestamp and webhook status.
-- For each new transaction, a POST request is sent to a configurable webhook URL. If Basic Auth is set, it is used for the webhook call.
-- The API provides endpoints to fetch mutation data on demand and to view the local database.
+- For each new transaction, a POST request is sent to a configurable webhook URL. The request is authenticated using HMAC SHA256 in the `x-api-key` header, using the same secret as the API endpoints.
+- The API provides endpoints to fetch mutation data on demand and to view the local database. All endpoints require HMAC authentication.
 
 ## Features
 - Automates KlikBCA login and navigation using Puppeteer
@@ -40,8 +40,6 @@ Copy `.env.example` to `.env` and fill in your credentials and config:
 KLIKBCA_USER_ID=your_user_id
 KLIKBCA_PIN=your_pin
 WEBHOOK_URL=https://your-webhook-url.com/endpoint
-WEBHOOK_BASIC_USER=your_webhook_user
-WEBHOOK_BASIC_PASS=your_webhook_pass
 AUTH_TOKEN=klikbca-secret-token
 PORT=3040
 CRON_INTERVAL=*/10 * * * *
@@ -59,6 +57,22 @@ docker build -t mutasi-klikbca .
 docker run -p 3040:3040 --env-file .env mutasi-klikbca
 ```
 
+## API Authentication (HMAC SHA256)
+All endpoints and webhook calls require a header:
+```
+x-api-key: <HMAC_SHA256_HEX>
+```
+Where `<HMAC_SHA256_HEX>` is the HMAC SHA256 of the request body (or empty string for GET) using the `AUTH_TOKEN` as the secret.
+
+**Example (Node.js):**
+```js
+const crypto = require('crypto');
+const secret = 'klikbca-secret-token';
+const payload = JSON.stringify({ user_id: 'YOUR_KLIKBCA_USERID', pin: 'YOUR_KLIKBCA_PIN' });
+const hmac = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+// Use hmac as x-api-key header
+```
+
 ## API Endpoints
 
 ### `POST /mutasi`
@@ -66,7 +80,7 @@ Fetch mutation data from KlikBCA on demand.
 
 **Headers:**
 ```
-Authorization: Bearer klikbca-secret-token
+x-api-key: <HMAC_SHA256_HEX>
 Content-Type: application/json
 ```
 **Body:**
@@ -106,7 +120,7 @@ Get all stored mutation data from the local JSON database.
 
 **Headers:**
 ```
-Authorization: Bearer klikbca-secret-token
+x-api-key: <HMAC_SHA256_HEX>
 ```
 **Success Response:**
 ```json
@@ -127,7 +141,7 @@ Authorization: Bearer klikbca-secret-token
 
 ## Webhook Notification
 - For each new transaction, a POST request is sent to the webhook URL with the transaction details as JSON.
-- If Basic Auth is set, it is used for the webhook call.
+- The request includes the `x-api-key` header (HMAC SHA256 of the payload using the same secret as the API).
 - The webhook response should contain `entryid` and `uniqueid` fields, which will be stored in the database.
 
 ## Security Notes
