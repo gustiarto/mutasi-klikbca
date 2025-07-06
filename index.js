@@ -21,9 +21,12 @@ app.use((req, res, next) => {
 const USER_ID = process.env.KLIKBCA_USER_ID || 'ISI_USER_ID';
 const PIN = process.env.KLIKBCA_PIN || 'ISI_PIN';
 const WEBHOOK_URL = process.env.WEBHOOK_URL || 'WEBHOOK_URL';
+const WEBHOOK_BASIC_USER = process.env.WEBHOOK_BASIC_USER || '';
+const WEBHOOK_BASIC_PASS = process.env.WEBHOOK_BASIC_PASS || '';
+const CRON_INTERVAL = process.env.CRON_INTERVAL || '*/10 * * * *';
 
-// Cron job setiap 10 menit
-cron.schedule('*/10 * * * *', async () => {
+// Cron job dengan interval dari ENV
+cron.schedule(CRON_INTERVAL, async () => {
   console.log(`[CRON] Fetching mutasi at ${new Date().toISOString()}`);
   try {
     const data = await getMutasiPuppeteer(USER_ID, PIN);
@@ -35,7 +38,14 @@ cron.schedule('*/10 * * * *', async () => {
         const fetch_datetime = new Date().toISOString();
         // Kirim webhook
         try {
-          const resp = await axios.post(WEBHOOK_URL, mutasi, { timeout: 10000 });
+          const axiosConfig = { timeout: 10000 };
+          if (WEBHOOK_BASIC_USER && WEBHOOK_BASIC_PASS) {
+            axiosConfig.auth = {
+              username: WEBHOOK_BASIC_USER,
+              password: WEBHOOK_BASIC_PASS
+            };
+          }
+          const resp = await axios.post(WEBHOOK_URL, mutasi, axiosConfig);
           const { entryid, uniqueid } = resp.data || {};
           db.push({ ...mutasi, fetch_datetime, status_webhook: { entryid, uniqueid } });
           console.log(`[WEBHOOK] Sent for ${mutasi.tanggal} - ${mutasi.keterangan}`);
