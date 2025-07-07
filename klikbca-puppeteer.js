@@ -43,7 +43,7 @@ async function getMutasiPuppeteer(user_id, pin, logger = console, headlessMode =
     const headerFrame = frames.find(f => f.name() === 'header');
     if (headerFrame) {
       try {
-        await headerFrame.waitForSelector('a[onclick*="logout"]', { timeout: 10000 });
+        await headerFrame.waitForSelector('a[onclick*="logout"]', { timeout: 3000 });
         await headerFrame.click('a[onclick*="logout"]');
       } catch (e) {
         logger.warn?.('WARN: Logout gagal');
@@ -51,15 +51,15 @@ async function getMutasiPuppeteer(user_id, pin, logger = console, headlessMode =
     }
     throw new Error('Frame menu tidak ditemukan');
   }
-  await menuFrame.waitForSelector('a[href="account_information_menu.htm"]', { timeout: 10000 });
+  await menuFrame.waitForSelector('a[href="account_information_menu.htm"]', { timeout: 3000 });
   await menuFrame.click('a[href="account_information_menu.htm"]');
-  await delay(1000);
-  await menuFrame.waitForSelector('a[onclick*="accountstmt.do?value(actions)=acct_stmt"]', { timeout: 10000 });
+  await delay(3000);
+  await menuFrame.waitForSelector('a[onclick*="accountstmt.do?value(actions)=acct_stmt"]', { timeout: 3000 });
   await menuFrame.evaluate(() => {
     const mutasi = Array.from(document.querySelectorAll('a')).find(a => a.textContent.includes('Mutasi Rekening'));
     if (mutasi) mutasi.click();
   });
-  await delay(1000);
+  await delay(3000);
 
   logger.info?.('STEP: Klik tombol Lihat Mutasi Rekening di frame atm');
   const atmFrame = frames.find(f => f.name() === 'atm');
@@ -68,7 +68,7 @@ async function getMutasiPuppeteer(user_id, pin, logger = console, headlessMode =
     const headerFrame = frames.find(f => f.name() === 'header');
     if (headerFrame) {
       try {
-        await headerFrame.waitForSelector('a[onclick*="logout"]', { timeout: 10000 });
+        await headerFrame.waitForSelector('a[onclick*="logout"]', { timeout: 3000 });
         await headerFrame.click('a[onclick*="logout"]');
       } catch (e) {
         logger.warn?.('WARN: Logout gagal');
@@ -76,12 +76,12 @@ async function getMutasiPuppeteer(user_id, pin, logger = console, headlessMode =
     }
     throw new Error('Frame atm tidak ditemukan');
   }
-  await atmFrame.waitForSelector('input[name="value(submit1)"]', { timeout: 10000 });
+  await atmFrame.waitForSelector('input[name="value(submit1)"]', { timeout: 3000 });
   await atmFrame.click('input[name="value(submit1)"]');
-  await delay(2000);
+  await delay(3000);
 
   logger.info?.('STEP: Tunggu tabel mutasi muncul');
-  await atmFrame.waitForSelector('table[border="1"]', { timeout: 10000 });
+  await atmFrame.waitForSelector('table[border="1"]', { timeout: 3000 });
 
   logger.info?.('STEP: Scrape data mutasi');
   const data = await atmFrame.evaluate(() => {
@@ -126,9 +126,9 @@ async function getMutasiPuppeteer(user_id, pin, logger = console, headlessMode =
   const headerFrame = frames.find(f => f.name() === 'header');
   if (headerFrame) {
     try {
-      await headerFrame.waitForSelector('a[onclick*="logout"]', { timeout: 10000 });
+      await headerFrame.waitForSelector('a[onclick*="logout"]', { timeout: 3000 });
       await headerFrame.click('a[onclick*="logout"]');
-      await delay(2000);
+      await delay(3000);
     } catch (e) {
       logger.warn?.('WARN: Logout gagal');
     }
