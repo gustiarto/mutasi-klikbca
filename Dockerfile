@@ -4,13 +4,13 @@ FROM node:20-alpine
 WORKDIR /app
 
 COPY package.json ./
-RUN npm install --production
+RUN npm install --production --unsafe-perm=true
 COPY . .
 
 EXPOSE 3040
 
 # Install Chromium for Puppeteer
-RUN apk add \
+RUN apk add --no-cache \
     chromium \
     nss \
     freetype \
