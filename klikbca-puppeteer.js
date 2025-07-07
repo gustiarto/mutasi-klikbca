@@ -5,9 +5,10 @@ function delay(ms) {
 }
 
 // Ambil data mutasi rekening dan parsing ke JSON
-async function getMutasiPuppeteer(user_id, pin, logger = console) {
+async function getMutasiPuppeteer(user_id, pin, logger = console, headlessMode = null) {
   logger.info?.('START: Launching browser');
-  const browser = await puppeteer.launch({ headless: "new", args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+  const headless = headlessMode !== null ? headlessMode : (process.env.PUPPETEER_HEADLESS || "new");
+  const browser = await puppeteer.launch({ headless, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   const page = await browser.newPage();
   logger.info?.('STEP: Open KlikBCA login page');
   await page.goto('https://ibank.klikbca.com/', { waitUntil: 'networkidle2' });
