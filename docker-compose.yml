@@ -6,5 +6,10 @@ services:
     ports:
       - "3040:3040"
     environment:
+      - KLIKBCA_USER_ID=your_user_id
+      - KLIKBCA_PIN=your_pin
+      - WEBHOOK_URL=https://your-webhook-url.com/endpoint
       - AUTH_TOKEN=klikbca-secret-token
+      - PORT=3040
+      - CRON_INTERVAL=*/10 * * * *
     restart: unless-stopped
