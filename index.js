@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const { getMutasiPuppeteer } = require('./klikbca-puppeteer');
 const { loadDb, saveDb, findMutasiInDb } = require('./mutasi-db');
