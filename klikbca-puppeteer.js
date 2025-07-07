@@ -76,8 +76,28 @@ async function getMutasiPuppeteer(user_id, pin, logger = console, headlessMode =
     }
     throw new Error('Frame atm tidak ditemukan');
   }
-  await atmFrame.waitForSelector('input[name="value(submit1)"]', { timeout: 3000 });
-  await atmFrame.click('input[name="value(submit1)"]');
+  try {
+    await atmFrame.waitForSelector('input[name="value(submit1)"]', { timeout: 5000 });
+    await atmFrame.click('input[name="value(submit1)"]');
+    await delay(5000);
+  } catch (e) {
+    logger.error?.('ERROR: Gagal klik tombol submit atau tombol tidak ditemukan', e);
+    await page.screenshot({ path: 'error-submit1.png', fullPage: true });
+
+    const headerFrame = frames.find(f => f.name() === 'header');
+    if (headerFrame) {
+      try {
+        await headerFrame.waitForSelector('a[onclick*="logout"]', { timeout: 3000 });
+        await headerFrame.click('a[onclick*="logout"]');
+        await delay(2000);
+        logger.info?.('INFO: Logout berhasil setelah gagal klik submit');
+      } catch (logoutError) {
+        logger.warn?.('WARN: Logout gagal setelah submit error', logoutError);
+      }
+    }
+
+    throw new Error('Gagal klik tombol Lihat Mutasi Rekening');
+  }
   await delay(3000);
 
   logger.info?.('STEP: Tunggu tabel mutasi muncul');
