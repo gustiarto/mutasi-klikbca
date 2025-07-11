@@ -133,7 +133,7 @@ async function getMutasiPuppeteer(user_id, pin, logger = console, headlessMode =
           tanggal: cols[0].innerText.trim(),
           keterangan: cols[1].innerText.trim().replace(/\n/g, ' ').replace(/\s+/g, ' '),
           cabang: cols[2].innerText.trim(),
-          mutasi: cols[3].innerText.trim(),
+          mutasi: parseInt(cols[3].innerText.trim().replace(/,/g, '')),
           tipe: cols[4].innerText.trim(),
           saldo: cols[5].innerText.trim(),
         });
